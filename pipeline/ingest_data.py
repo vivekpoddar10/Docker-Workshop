@@ -4,6 +4,7 @@
 import pandas as pd
 from sqlalchemy import create_engine
 from tqdm import tqdm
+import click
 
 
 prefix = "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow"
@@ -63,16 +64,27 @@ def ingest_data(
             data_chunk.to_sql(name=table_name, con=engine, if_exists="append")
             print(f'Inserted chunk: {len(data_chunk)}')
 
+
+@click.command()
+@click.option("--year", default=2021, type=int, help="Year of data")
+@click.option("--month", default=1, type=int, help="Month number (1-12)")
+@click.option("--pg-user", "pg_user", default="root", help="Postgres user")
+@click.option("--pg-password", "pg_password", default="root", help="Postgres password")
+@click.option("--pg-host", "pg_host", default="localhost", help="Postgres host")
+@click.option("--pg-port", "pg_port", default=5433, type=int, help="Postgres port")
+@click.option("--pg-db", "pg_db", default="ny_taxi", help="Postgres database")
+@click.option("--chunk-size", "chunk_size", default=100000, type=int, help="Chunk size for reading CSV")
+@click.option("--target-table", "target_table", default="yellow_taxi_data", help="Target table name")
 def main(
-        year:int,
-        month:int,
-        pg_user:str,
-        pg_password:str,
-        pg_host:str,
-        pg_port:int,
-        pg_db:str,
-        chunk_size:int,
-        target_table: str
+    year:int,
+    month:int,
+    pg_user:str,
+    pg_password:str,
+    pg_host:str,
+    pg_port:int,
+    pg_db:str,
+    chunk_size:int,
+    target_table: str
 ):
 
     url = f"{prefix}/yellow_tripdata_{year}-{month:02d}.csv.gz"
@@ -80,17 +92,7 @@ def main(
     ingest_data(url, table_name=target_table, chunk_size=chunk_size, engine=engine)
 
 if __name__ == '__main__':
-    main(
-        year=2021,
-        month=1,
-        pg_user = "root",
-        pg_password = "root",
-        pg_host = "localhost",
-        pg_port = 5433,
-        pg_db = "ny_taxi",
-        chunk_size=100000,
-        target_table="yellow_taxi_data"
-    )
+    main()
 
 
 
